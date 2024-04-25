@@ -86,7 +86,6 @@ func (r *Rabbitmq) sendSimpleMsg(msg string) error {
 	return nil
 
 }
-
 func main() {
 	simpleMsg := "Hello World simple message01!"
 	res := newRabbitmqSimple("hello_queue_simple01")
