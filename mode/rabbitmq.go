@@ -1,4 +1,4 @@
-package simple
+package mode
 
 import (
 	"github.com/streadway/amqp"
@@ -50,6 +50,12 @@ func (r *Rabbitmq) failOnErr(err error, msg string) {
 //创建rabbitmq简单模式
 func NewRabbitmqSimple(queueName string) *Rabbitmq {
 	return newRabbitmq(queueName, "", "")
+}
+
+//创建发布订阅模式(发消息通过交换机发送到多个队列中，不同消费者可以通过不同队列消费同一个消息)
+//这种模式下不需要指定队列名称，只需要指定交换机名称
+func NewRabbitmqPubSub(exchangeName string) *Rabbitmq {
+	return newRabbitmq("", exchangeName, "")
 }
 
 //rabbitmq官网：https://www.rabbitmq.com/tutorials
@@ -120,8 +126,100 @@ func (r *Rabbitmq) ConsumerSimpleMsg() error {
 			log.Printf("Received a message: %s\n", d.Body)
 		}
 	}()
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
+	log.Printf(" [*] Waiting for messages from simple queue. To exit press CTRL+C")
 	//阻塞
+	<-forever
+	return nil
+}
+
+//发送订阅消息
+func (r *Rabbitmq) SendPubSubMsg(msg string) error {
+	//创建交换机
+	err := r.channel.ExchangeDeclare(
+		r.Excahnge, // name
+		"fanout",   // type
+		true,       // durable
+		false,      // auto-deleted
+		false,      // internal
+		false,      // no-wait
+		nil,        // arguments)
+	)
+	if err != nil {
+		r.failOnErr(err, "创建订阅模式队列失败")
+		return err
+	}
+	//发送消息
+	err = r.channel.Publish(
+		r.Excahnge,
+		"",    // routing key
+		false, // mandatory
+		false, // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(msg),
+		},
+	)
+	if err != nil {
+		r.failOnErr(err, "发送订阅消息失败")
+		return err
+	}
+	return nil
+
+}
+
+//消费发布订阅消息
+func (r *Rabbitmq) ConsumerPubSubMsg() error {
+	//创建交换机
+	err := r.channel.ExchangeDeclare(
+		r.Excahnge, // name
+		"fanout",   // type
+		true,       // durable
+		false,      // auto-deleted
+		false,      // internal
+		false,      // no-wait
+		nil,        // arguments)
+	)
+	if err != nil {
+		r.failOnErr(err, "创建订阅模式队列失败")
+		return err
+	}
+	//创建队列
+	q, err := r.channel.QueueDeclare(
+		"",    // name 发布订阅模式，队列一定要为空
+		false, // durable
+		false, // delete when unused
+		true,  // exclusive
+		false, // no-wait
+		nil,   // arguments)
+	)
+	r.failOnErr(err, "发送订阅队列QueueDeclare失败")
+	//绑定队列到交换机上
+	err = r.channel.QueueBind(
+		q.Name,     // queue name
+		"",         // routing key 这里一定为空
+		r.Excahnge, // exchange
+		false,
+		nil,
+	)
+	r.failOnErr(err, "队列绑定交换机错误")
+	//消费消息
+	msgs, err := r.channel.Consume(
+		q.Name, // queue
+		"",     // consumer
+		true,   // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args)
+	)
+	r.failOnErr(err, "消息订阅模式消费错误")
+	var forever chan struct{}
+	go func() {
+		for d := range msgs {
+			log.Printf(" receive message %s", d.Body)
+		}
+	}()
+	log.Printf(" [*] Waiting for logs from pubsub. To exit press CTRL+C")
 	<-forever
 	return nil
 }

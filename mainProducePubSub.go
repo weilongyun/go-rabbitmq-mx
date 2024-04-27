@@ -8,14 +8,14 @@ import (
 
 //消费简单消息
 func main() {
-	simpleMsg := "Hello World mode message!"
-	res := mode.NewRabbitmqSimple("hello_queue_simple01")
+	Msg := "Hello World pubsub message!"
+	res := mode.NewRabbitmqPubSub("hello_exchange_pubsub")
 	for i := 0; i < 50; i++ {
-		err := res.SendSimpleMsg(simpleMsg + fmt.Sprintf("%d", i))
+		err := res.SendPubSubMsg(Msg + fmt.Sprintf("%d", i))
 		if err != nil {
 			log.Printf(" sendSimpleMsg mode error", err)
 			panic(err)
 		}
 	}
-	fmt.Println("发送成功")
+	fmt.Println("发送pubsub成功")
 }
