@@ -58,6 +58,11 @@ func NewRabbitmqPubSub(exchangeName string) *Rabbitmq {
 	return newRabbitmq("", exchangeName, "")
 }
 
+//初始化Routin模式
+func NewRabbitmqRouting(exchangeName, routing_key string) *Rabbitmq {
+	return newRabbitmq("", exchangeName, routing_key)
+}
+
 //rabbitmq官网：https://www.rabbitmq.com/tutorials
 //发送普通消息，客户端直接发送消息到队列中，消费者直接从队列中消费
 //先创建队列
@@ -220,6 +225,98 @@ func (r *Rabbitmq) ConsumerPubSubMsg() error {
 		}
 	}()
 	log.Printf(" [*] Waiting for logs from pubsub. To exit press CTRL+C")
+	<-forever
+	return nil
+}
+
+//根据routing key发送routing消息
+func (r *Rabbitmq) SendRoutingMsg(msg string) error {
+	//创建交换机
+	//创建交换机
+	err := r.channel.ExchangeDeclare(
+		r.Excahnge, // name
+		"direct",   // type
+		true,       // durable
+		false,      // auto-deleted
+		false,      // internal
+		false,      // no-wait
+		nil,        // arguments)
+	)
+	if err != nil {
+		r.failOnErr(err, "创建routing模式队列失败")
+		return err
+	}
+	//发送消息
+	err = r.channel.Publish(
+		r.Excahnge,
+		r.Key, // routing key
+		false, // mandatory
+		false, // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(msg),
+		},
+	)
+	if err != nil {
+		r.failOnErr(err, "发送routing工作模式下的消息失败")
+		return err
+	}
+	return nil
+}
+
+//根据routing key消费消息
+func (r *Rabbitmq) ConsumerRoutingMsg() error {
+	//创建交换机
+	err := r.channel.ExchangeDeclare(
+		r.Excahnge, // name
+		"direct",   // type
+		true,       // durable
+		false,      // auto-deleted
+		false,      // internal
+		false,      // no-wait
+		nil,        // arguments)
+	)
+	if err != nil {
+		r.failOnErr(err, "创建routing模式队列失败")
+		return err
+	}
+	//创建队列
+	q, err := r.channel.QueueDeclare(
+		"",    // name 发布订阅模式，队列一定要为空
+		false, // durable
+		false, // delete when unused
+		true,  // exclusive
+		false, // no-wait
+		nil,   // arguments)
+	)
+	r.failOnErr(err, "发送routing队列QueueDeclare失败")
+	//绑定队列到交换机上
+	err = r.channel.QueueBind(
+		q.Name,     // queue name
+		r.Key,      // routing key 这里一定不能为空
+		r.Excahnge, // exchange
+		false,
+		nil,
+	)
+	r.failOnErr(err, "队列绑定交换机错误routing模式")
+	//消费消息
+	msgs, err := r.channel.Consume(
+		q.Name, // queue
+		"",     // consumer
+		true,   // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args)
+	)
+	r.failOnErr(err, "routing模式消费错误")
+	var forever chan struct{}
+	go func() {
+		for d := range msgs {
+			log.Printf(" receive routing message %s", d.Body)
+		}
+	}()
+	log.Printf(" [*] Waiting for logs from routing. To exit press CTRL+C")
 	<-forever
 	return nil
 }
