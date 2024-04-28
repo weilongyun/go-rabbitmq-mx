@@ -299,6 +299,7 @@ func (r *Rabbitmq) ConsumerRoutingMsg() error {
 		nil,
 	)
 	r.failOnErr(err, "队列绑定交换机错误routing模式")
+	//推模式
 	//消费消息
 	msgs, err := r.channel.Consume(
 		q.Name, // queue
