@@ -1,0 +1,6 @@
+##
+datamodels层级主要是定义db模型
+repositories层级主要是操作db，比如链接db，curd，不做业务逻辑处理
+services主要是处理业务逻辑
+controller主要接受用户发起的请求
+view主要用作视图，前端页面展示用的
