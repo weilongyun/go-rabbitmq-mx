@@ -9,10 +9,10 @@ import (
 )
 
 type OrderForm struct {
-	OrderId string `form:"order_id" binding:"required"`
+	OrderId string `form:"order_id"`
 }
 type OrderQuery struct {
-	OrderId string `form:"order_id" binding:"required"`
+	OrderId string `form:"order_id"`
 }
 type Res struct {
 	OrderId string `json:"order_id"`
@@ -50,10 +50,10 @@ func (oc *OrderController) GetOrderInfo(c iris.Context) {
 }
 
 //通过ReadForm绑定参数 适用于post请求
+//结构体不需要加标签，校验字段的时候用iris.IsErrPath就会全部校验
 func (oc *OrderController) GetOrderInfoByPost(c iris.Context) {
 	var form OrderForm
-	//这个绑定没有用，只是为了方便获取字段值的，后续强制校验的字段还需要业务逻辑去判断，没有gin灵活
-	if err := c.ReadForm(&form); err != nil {
+	if err := c.ReadForm(&form); !iris.IsErrPath(err) {
 		c.StatusCode(iris.StatusBadRequest)
 		logrus.Error("GetOrderInfoByPost error", err)
 		return
@@ -71,13 +71,13 @@ func (oc *OrderController) GetOrderInfoByPost(c iris.Context) {
 
 //通过ReadQuery绑定参数 适用于get请求
 func (oc *OrderController) GetOrderInfoByGet(c iris.Context) {
-	var form OrderQuery
-	if err := c.ReadQuery(&form); err != nil {
+	var query OrderQuery
+	if err := c.ReadQuery(&query); !iris.IsErrPath(err) {
 		c.StatusCode(iris.StatusBadRequest)
 		logrus.Error("GetOrderInfoByPost error", err)
 		return
 	}
-	order_id := form.OrderId
+	order_id := query.OrderId
 	repo := repositories.NewOrderRepositoryManager()
 	orderService := service.NewOrderServiceManager(repo)
 	orderInfo := orderService.ShowOrderInfo(order_id)
