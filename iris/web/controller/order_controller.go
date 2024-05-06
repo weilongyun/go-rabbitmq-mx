@@ -12,7 +12,7 @@ type OrderForm struct {
 	OrderId string `form:"order_id"`
 }
 type OrderQuery struct {
-	OrderId string `form:"order_id"`
+	OrderId string `url:"order_id,required"` //get方式用关键字url
 }
 type Res struct {
 	OrderId string `json:"order_id"`
@@ -51,9 +51,13 @@ func (oc *OrderController) GetOrderInfo(c iris.Context) {
 
 //通过ReadForm绑定参数 适用于post请求
 //结构体不需要加标签，校验字段的时候用iris.IsErrPath就会全部校验
+//IsErrPath只是适用于post，不适用于get
+//iris文档 https://www.tizi365.com/topic/10664.html
 func (oc *OrderController) GetOrderInfoByPost(c iris.Context) {
 	var form OrderForm
-	if err := c.ReadForm(&form); !iris.IsErrPath(err) {
+	err := c.ReadForm(&form)
+	//IsErrPath会忽略不存在的参数，还是会继续向后执行的，所以post方式不能强制校验，需要业务去判断
+	if err != nil && !iris.IsErrPath(err) {
 		c.StatusCode(iris.StatusBadRequest)
 		logrus.Error("GetOrderInfoByPost error", err)
 		return
@@ -70,9 +74,11 @@ func (oc *OrderController) GetOrderInfoByPost(c iris.Context) {
 }
 
 //通过ReadQuery绑定参数 适用于get请求
+//http://localhost:6789/getOrderInfoByGet?order_id=1
 func (oc *OrderController) GetOrderInfoByGet(c iris.Context) {
 	var query OrderQuery
-	if err := c.ReadQuery(&query); !iris.IsErrPath(err) {
+	//get方式可以强制校验参数
+	if err := c.ReadQuery(&query); err != nil {
 		c.StatusCode(iris.StatusBadRequest)
 		logrus.Error("GetOrderInfoByPost error", err)
 		return
