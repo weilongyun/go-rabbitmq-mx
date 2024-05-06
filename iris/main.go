@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"iris/web/controller"
+	"log"
+	"time"
 )
 
 func main() {
@@ -27,10 +30,28 @@ func main() {
 		api.Get("/getOrderInfoByGet", c.GetOrderInfoByGet)
 		api.Get("/jsonp", c.Jsonp)
 	}
-	//加载控制器
-	app.Run(
+	//加载控制器 run是阻塞到
+	/*app.Run(
 		iris.Addr(":6789"),
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,
-	)
+	)*/
+	//优雅退出
+	idleConnsClosed := make(chan struct{})
+	iris.RegisterOnInterrupt(func() {
+		timeout := 10 * time.Second
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		log.Println("close...")
+		// close all hosts.
+		app.Shutdown(ctx)
+		close(idleConnsClosed)
+	})
+	go func() {
+		lis := app.Listen(":6789", iris.WithOptimizations, iris.WithoutInterruptHandler, iris.WithoutServerError(iris.ErrServerClosed))
+		if lis != nil {
+			log.Fatalf("Server failed to start: %v", lis)
+		}
+	}()
+	<-idleConnsClosed
 }
