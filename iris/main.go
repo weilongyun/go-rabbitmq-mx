@@ -18,6 +18,8 @@ func main() {
 	//注意：此时只要controller中定义了多少方法都会被执行
 	mvc.New(app.Party("/hello")).Handle(c)
 	app.Get("/getOrderInfo", c.GetOrderInfo)
+	app.Post("/getOrderInfoByPost", c.GetOrderInfoByPost)
+	app.Get("/getOrderInfoByGet", c.GetOrderInfoByGet)
 	//加载控制器
 	app.Run(
 		iris.Addr(":6789"),
