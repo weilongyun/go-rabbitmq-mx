@@ -34,7 +34,8 @@ func (oc *OrderController) Get() mvc.View {
 
 //http://localhost:6789/getOrderInfo?order_id=11
 func (oc *OrderController) GetOrderInfo(c iris.Context) {
-	order_id := c.URLParam("order_id")
+	//order_id := c.URLParam("order_id")
+	order_id := c.Params().Get("order_id")
 	if len(order_id) == 0 {
 		logrus.Error("order_id error", order_id)
 		return
@@ -74,7 +75,7 @@ func (oc *OrderController) GetOrderInfoByPost(c iris.Context) {
 }
 
 //通过ReadQuery绑定参数 适用于get请求
-//http://localhost:6789/getOrderInfoByGet?order_id=1
+//http://localhost:6789/order-group/getOrderInfoByGet?order_id=11
 func (oc *OrderController) GetOrderInfoByGet(c iris.Context) {
 	var query OrderQuery
 	//get方式可以强制校验参数
@@ -93,4 +94,7 @@ func (oc *OrderController) GetOrderInfoByGet(c iris.Context) {
 	// 使用转换后的 JSON 字符串作为参数传递给 iris.Context.JSON 方法
 	c.JSON(res)
 
+}
+func (oc *OrderController) Jsonp(c iris.Context) {
+	c.JSONP(iris.Map{"hello": "jsonp"}, iris.JSONP{Callback: "callbackName"})
 }
