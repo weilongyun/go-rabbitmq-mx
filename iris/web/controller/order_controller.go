@@ -1,13 +1,11 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/sirupsen/logrus"
 	"iris/repositories"
 	"iris/service"
-	"os"
 )
 
 type OrderForm struct {
@@ -71,7 +69,7 @@ func (oc *OrderController) GetOrderInfoByPost(c iris.Context) {
 	c.JSON(res)
 }
 
-//通过ReadForm绑定参数 适用于post请求
+//通过ReadQuery绑定参数 适用于get请求
 func (oc *OrderController) GetOrderInfoByGet(c iris.Context) {
 	var form OrderQuery
 	if err := c.ReadQuery(&form); err != nil {
