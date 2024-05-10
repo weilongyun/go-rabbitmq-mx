@@ -57,7 +57,7 @@ func (p *ProductRepositoryManager) Insert(product *datamodels.Product) (product_
 		return
 	}
 	//预编译采用占位符，防止sql注入
-	sql := "insert into" + p.table + "set product_name=?,product_num=?,image=?,product_price=?"
+	sql := "insert into" + p.table + "set product_id = ？，product_name=?,product_num=?,image=?,product_price=?"
 	stmt, err := p.mysqlConn.Prepare(sql)
 	if err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Prepare error", err)
@@ -71,8 +71,23 @@ func (p *ProductRepositoryManager) Insert(product *datamodels.Product) (product_
 	return resp.LastInsertId()
 }
 
-func (p *ProductRepositoryManager) Delete(i int64) (bool, error) {
-	panic("implement me")
+func (p *ProductRepositoryManager) Delete(id int64) (isSuccess bool, err error) {
+	if err := p.Conn(); err != nil {
+		log.Fatalln("mysql ProductRepositoryManager Delete error", err)
+		return
+	}
+	sql := "delete from" + p.table + "where id=?"
+	stmt, err := p.mysqlConn.Prepare(sql)
+	if err != nil {
+		log.Fatalln("mysql ProductRepositoryManager Delete Prepare error", err)
+		return
+	}
+	_, err = stmt.Exec(id)
+	if err != nil {
+		log.Fatalln("mysql ProductRepositoryManager Delete Exec error", err)
+		return
+	}
+	return true, nil
 }
 
 func (p *ProductRepositoryManager) Update(product *datamodels.Product) error {
