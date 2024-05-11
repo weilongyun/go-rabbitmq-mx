@@ -5,6 +5,7 @@ import (
 	"backend/datamodels"
 	"database/sql"
 	"log"
+	"strconv"
 )
 
 const PRODUCT_TABLE = "product"
@@ -90,12 +91,46 @@ func (p *ProductRepositoryManager) Delete(id int64) (isSuccess bool, err error) 
 	return true, nil
 }
 
-func (p *ProductRepositoryManager) Update(product *datamodels.Product) error {
-	panic("implement me")
+func (p *ProductRepositoryManager) Update(product *datamodels.Product) (err error) {
+	if err := p.Conn(); err != nil {
+		log.Fatalln("mysql ProductRepositoryManager Update error", err)
+		return
+	}
+	sql := "update" + p.table + "set product_id=? and product_name=? and product_num=? and image=? and product_price=? where id=" + strconv.FormatInt(product.ID, 10)
+	stmt, err := p.mysqlConn.Prepare(sql)
+	if err != nil {
+		log.Fatalln("mysql ProductRepositoryManager Update Prepare error", err)
+		return
+	}
+	_, err = stmt.Exec(product.ProductID, product.ProductName, product.ProductNum, product.ProductImage, product.ProductPrice)
+	if err != nil {
+		log.Fatalln("mysql ProductRepositoryManager Update Exec error", err)
+		return
+	}
+	return
 }
 
-func (p ProductRepositoryManager) SelectById(i int64) (*datamodels.Product, error) {
-	panic("implement me")
+func (p ProductRepositoryManager) SelectById(id int64) (product *datamodels.Product, err error) {
+	if err := p.Conn(); err != nil {
+		log.Fatalln("mysql ProductRepositoryManager Update error", err)
+		return
+	}
+	sql := "select * from" + p.table + "where id=" + strconv.FormatInt(id, 10)
+	stmt, err := p.mysqlConn.Prepare(sql)
+	if err != nil {
+		log.Fatalln("mysql ProductRepositoryManager SelectById Prepare error", err)
+		return
+	}
+	resp, err := stmt.Exec(product.ID)
+	if err != nil {
+		log.Fatalln("mysql ProductRepositoryManager SelectById Exec error", err)
+		return
+	}
+	ID, _ := resp.LastInsertId()
+	productResp := &datamodels.Product{
+		ID: ID,
+	}
+	return productResp, nil
 }
 
 func (p *ProductRepositoryManager) SelectAll() ([]*datamodels.Product, error) {
