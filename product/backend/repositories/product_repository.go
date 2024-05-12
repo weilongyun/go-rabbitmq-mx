@@ -16,7 +16,7 @@ type IProductRepository interface {
 	Insert(*datamodels.Product) (int64, error)
 	Delete(int64) (bool, error)
 	Update(*datamodels.Product) error
-	SelectById(int64) (*datamodels.Product, error)
+	SelectById(string2 string) (*datamodels.Product, error)
 	SelectAll() ([]*datamodels.Product, error)
 }
 type ProductRepositoryManager struct {
@@ -110,27 +110,26 @@ func (p *ProductRepositoryManager) Update(product *datamodels.Product) (err erro
 	return
 }
 
-func (p ProductRepositoryManager) SelectById(id int64) (product *datamodels.Product, err error) {
+func (p ProductRepositoryManager) SelectById(product_id string) (product *datamodels.Product, err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Update error", err)
 		return
 	}
-	sql := "select * from" + p.table + "where id=" + strconv.FormatInt(id, 10)
-	stmt, err := p.mysqlConn.Prepare(sql)
+	sql := "select * from" + p.table + "where id=" + product_id
+	rows, err := p.mysqlConn.Query(sql)
 	if err != nil {
-		log.Fatalln("mysql ProductRepositoryManager SelectById Prepare error", err)
+		log.Fatalln("mysql ProductRepositoryManager SelectById Query error", err)
 		return
 	}
-	resp, err := stmt.Exec(product.ID)
-	if err != nil {
-		log.Fatalln("mysql ProductRepositoryManager SelectById Exec error", err)
+	//获取单条记录
+	resp := common.GetResultRow(rows)
+	if len(resp) == 0 {
+		log.Println("mysql ProductRepositoryManager SelectById GetResultRow empty")
 		return
 	}
-	ID, _ := resp.LastInsertId()
-	productResp := &datamodels.Product{
-		ID: ID,
-	}
-	return productResp, nil
+	//map转结构体
+	common.DataToStructByTagSql(resp, product)
+	return
 }
 
 func (p *ProductRepositoryManager) SelectAll() ([]*datamodels.Product, error) {

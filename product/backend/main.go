@@ -11,6 +11,7 @@ import (
 func main() {
 	//初始化iris
 	app := iris.New()
+
 	//加载日志等级
 	app.Logger().SetLevel("debug")
 	//加载注册前端模板
