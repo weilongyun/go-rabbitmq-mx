@@ -127,7 +127,7 @@ func (p ProductRepositoryManager) SelectById(product_id string) (product *datamo
 		log.Println("mysql ProductRepositoryManager SelectById GetResultRow empty")
 		return
 	}
-	//map转结构体
+	//map转结构体 ,利用反射
 	common.DataToStructByTagSql(resp, product)
 	return
 }
