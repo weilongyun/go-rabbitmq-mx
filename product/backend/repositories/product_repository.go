@@ -4,7 +4,9 @@ import (
 	"backend/common"
 	"backend/datamodels"
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
 	"strconv"
 )
 
@@ -133,5 +135,7 @@ func (p ProductRepositoryManager) SelectById(product_id string) (product *datamo
 }
 
 func (p *ProductRepositoryManager) SelectAll() ([]*datamodels.Product, error) {
+	fmt.Println()
+	os.Exit(0)
 	panic("implement me")
 }

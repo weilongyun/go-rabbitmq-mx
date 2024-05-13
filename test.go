@@ -10,8 +10,8 @@ type User struct {
 	Age  int
 }
 type User1 struct {
-	Name string
-	Age  int
+	Name string `sql:"name"`
+	Age  int    `sql:"age"`
 }
 
 func (u *User1) show() {
@@ -58,13 +58,39 @@ func main() {
 	fmt.Println("=========")
 	u1 := User1{Name: "ttr", Age: 18}
 	u1.show()
-	fmt.Println(reflect.TypeOf(u).NumField()) //{wly}
+	fmt.Println(reflect.TypeOf(u).NumField())  //2
+	fmt.Println(reflect.ValueOf(u).NumField()) //2
 	//通过指针可以获取对应的对象
 	v := reflect.ValueOf(&d).Elem()
+	fmt.Println("==", v)
+	//fmt.Println("==", v.NumField())
 	if v.Kind() == reflect.Int {
 		//获取对应的值然后修改对应的值，ValueOf必须为指针
 		v.SetInt(v.Int() + 100)
 	}
 	fmt.Println(d)
+	//针对结构体的，取出结构体中的tag
+	user1 := &User1{
+		Name: "mx",
+		Age:  1,
+	}
+	userV2 := reflect.ValueOf(user1).Elem() //返回main.User1
+	//通过结构体标签获取的是name
+	fmt.Println("****")
+	fmt.Println(userV2.Type().Field(0).Tag.Get("sql")) //这个是tag标签的字段
+	//通过结构体标签获取的是age
+	fmt.Println(userV2.Type().Field(1).Tag.Get("sql")) //这个是tag标签的字段
+
+	fmt.Println(userV2.Type().Field(0).Name) //这个是结构体字段名
+	fmt.Println(userV2.Type().Field(1).Name) //这个是结构体字段名
+
+	fmt.Println(userV2.Field(0)) // 获取的结果是mx
+	fmt.Println(userV2.Field(1)) // 获取的结果是1
+
+	fmt.Println(userV2.Field(0).Type()) // 结构体中Name对应的值mx的类型，结果是string
+	fmt.Println(userV2.Field(1).Type()) // 结构体中Name对应的值mx的类型，结果是int
+
+	fmt.Println(userV2.Field(0).Type().Name())
+	fmt.Println(userV2.Field(1).Type().Name())
 
 }

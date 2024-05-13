@@ -13,9 +13,9 @@ func DataToStructByTagSql(data map[string]string, obj interface{}) {
 	for i := 0; i < objValue.NumField(); i++ {
 		//获取sql对应的值
 		value := data[objValue.Type().Field(i).Tag.Get("sql")]
-		//获取对应字段的名称
+		//获取结构体对应字段的名称
 		name := objValue.Type().Field(i).Name
-		//获取对应字段类型
+		//获取结构体中对应字段类型
 		structFieldType := objValue.Field(i).Type()
 		//获取变量类型，也可以直接写"string类型"
 		val := reflect.ValueOf(value)
