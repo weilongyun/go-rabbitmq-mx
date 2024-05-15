@@ -4,9 +4,7 @@ import (
 	"backend/common"
 	"backend/datamodels"
 	"database/sql"
-	"fmt"
 	"log"
-	"os"
 	"strconv"
 )
 
@@ -16,9 +14,9 @@ const PRODUCT_TABLE = "product"
 type IProductRepository interface {
 	Conn() error //数据库链接
 	Insert(*datamodels.Product) (int64, error)
-	Delete(int64) (bool, error)
+	Delete(string2 string) (bool, error)
 	Update(*datamodels.Product) error
-	SelectById(string2 string) (*datamodels.Product, error)
+	SelectByProductId(string2 string) (*datamodels.Product, error)
 	SelectAll() ([]*datamodels.Product, error)
 }
 type ProductRepositoryManager struct {
@@ -54,7 +52,7 @@ func (p *ProductRepositoryManager) Conn() (err error) {
 }
 
 //插入数据
-func (p *ProductRepositoryManager) Insert(product *datamodels.Product) (product_id int64, err error) {
+func (p *ProductRepositoryManager) Insert(product *datamodels.Product) (id int64, err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Insert error", err)
 		return
@@ -74,18 +72,19 @@ func (p *ProductRepositoryManager) Insert(product *datamodels.Product) (product_
 	return resp.LastInsertId()
 }
 
-func (p *ProductRepositoryManager) Delete(id int64) (isSuccess bool, err error) {
+//通过商品id删除
+func (p *ProductRepositoryManager) Delete(product_id string) (isSuccess bool, err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Delete error", err)
 		return
 	}
-	sql := "delete from" + p.table + "where id=?"
+	sql := "delete from" + p.table + "where product_id=?"
 	stmt, err := p.mysqlConn.Prepare(sql)
 	if err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Delete Prepare error", err)
 		return
 	}
-	_, err = stmt.Exec(id)
+	_, err = stmt.Exec(product_id)
 	if err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Delete Exec error", err)
 		return
@@ -112,13 +111,15 @@ func (p *ProductRepositoryManager) Update(product *datamodels.Product) (err erro
 	return
 }
 
-func (p ProductRepositoryManager) SelectById(product_id string) (product *datamodels.Product, err error) {
+//通过商品id获取商品信息
+func (p ProductRepositoryManager) SelectByProductId(product_id string) (product *datamodels.Product, err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Update error", err)
 		return
 	}
-	sql := "select * from" + p.table + "where id=" + product_id
+	sql := "select * from" + p.table + "where product_id=" + product_id
 	rows, err := p.mysqlConn.Query(sql)
+	defer rows.Close()
 	if err != nil {
 		log.Fatalln("mysql ProductRepositoryManager SelectById Query error", err)
 		return
@@ -134,8 +135,28 @@ func (p ProductRepositoryManager) SelectById(product_id string) (product *datamo
 	return
 }
 
-func (p *ProductRepositoryManager) SelectAll() ([]*datamodels.Product, error) {
-	fmt.Println()
-	os.Exit(0)
-	panic("implement me")
+//查询所有数据
+func (p *ProductRepositoryManager) SelectAll() (arrProductInfo []*datamodels.Product, err error) {
+	if err := p.Conn(); err != nil {
+		log.Fatalln("mysql ProductRepositoryManager SelectAll error", err)
+		return
+	}
+	sql := "select * from " + p.table
+	rows, err := p.mysqlConn.Query(sql)
+	defer rows.Close()
+	if err != nil {
+		log.Fatalln("mysql ProductRepositoryManager SelectAll Query error", err)
+		return
+	}
+	resp := common.GetResultRows(rows)
+	if len(resp) == 0 {
+		log.Println("mysql ProductRepositoryManager SelectAll GetResultRows empty")
+		return
+	}
+	for _, v := range resp {
+		product := &datamodels.Product{}
+		common.DataToStructByTagSql(v, product)
+		arrProductInfo = append(arrProductInfo, product)
+	}
+	return
 }

@@ -2,6 +2,7 @@ package common
 
 import (
 	"errors"
+	"log"
 	"reflect"
 	"strconv"
 	"time"
@@ -24,7 +25,7 @@ func DataToStructByTagSql(data map[string]string, obj interface{}) {
 			//类型转换
 			val, err = TypeConversion(value, structFieldType.Name()) //类型转换
 			if err != nil {
-
+				log.Fatalf("DataToStructByTagSql TypeConversion err %v", err)
 			}
 		}
 		//设置类型值
