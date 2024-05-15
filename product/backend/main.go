@@ -1,7 +1,12 @@
 package main
 
 import (
+	"backend/common"
+	"backend/repositories"
+	"backend/service"
+	"backend/web/controller"
 	"context"
+	"github.com/kataras/iris/v12/mvc"
 	"log"
 	"time"
 
@@ -19,16 +24,17 @@ func main() {
 	app.RegisterView(template)
 	//注册模板目标
 	app.HandleDir("/assets", iris.Dir("./backend/web/assets"))
-	//c := &controller.OrderController{}
-	//注册路由
-	//注意：此时只要controller中定义了多少方法都会被执行
-	//iris路由有二种模式：mvc路由和函数路由
-	//mvc路由模式
-	//mvc.New(app.Party("/hello")).Handle(c)
-	//函数路由模式，Party代表分组
-	/*api := app.Party("/order-group")
-	{
-	}*/
+	productInstance := mvc.New(app.Party("/product"))
+	dbConn, err := common.NewMysqlConn()
+	if err != nil {
+		log.Fatalf("start NewMysqlConn err %v", err)
+	}
+	productRepositories := repositories.NewProductRepositoryManager("product", dbConn)
+	productService := service.NewProductServiceManager(productRepositories)
+	//注册service
+	productInstance.Register(productService)
+	//注册控制器
+	productInstance.Handle(new(controller.Product))
 	//优雅退出
 	idleConnsClosed := make(chan struct{})
 	iris.RegisterOnInterrupt(func() {
