@@ -32,7 +32,7 @@ func main() {
 	}
 	//加载控制器 run是阻塞的
 	/*app.Run(
-		iris.Addr(":6789"),
+		iris.Addr(":6789")  ,
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,
 	)*/
