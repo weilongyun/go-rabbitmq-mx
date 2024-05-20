@@ -1,34 +1,29 @@
 package controller
 
 import (
-	"backend/common"
-	"backend/datamodels"
 	"backend/service"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
-	"log"
 )
 
-type Product struct {
-	Ctx            iris.Context
-	productService service.IProductService
+type ProductController struct {
+	//Ctx            iris.Context
+	ProductService service.IProductService
 }
 
-func (p *Product) GetAllProductInfo() mvc.View {
-	result, err := p.productService.GetAllProductInfo()
-	if err != nil {
-		log.Fatalln("product controller  GetAllProductInfo error", err)
-	}
+//获取全部商品列表
+func (p *ProductController) GetAll() mvc.View {
+	productArray, _ := p.ProductService.GetAllProductInfo()
 	return mvc.View{
 		Name: "product/view.html",
 		Data: iris.Map{
-			"arrAllProductInfo": result,
+			"productArray": productArray,
 		},
 	}
 }
 
 //post请求
-func (p *Product) PostUpdateProductInfo() {
+/*func (p *Product) PostUpdateProductInfo() {
 	product := &datamodels.Product{}
 	//解析表单
 	p.Ctx.Request().ParseForm()
@@ -40,4 +35,4 @@ func (p *Product) PostUpdateProductInfo() {
 	if err != nil {
 		log.Fatalln("product controller  GetAllProductInfo error", err)
 	}
-}
+}*/

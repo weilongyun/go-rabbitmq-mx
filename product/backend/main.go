@@ -16,25 +16,28 @@ import (
 func main() {
 	//初始化iris
 	app := iris.New()
-
 	//加载日志等级
 	app.Logger().SetLevel("debug")
 	//加载注册前端模板
 	template := iris.HTML("./web/views", ".html").Layout("shared/layout.html").Reload(true)
 	app.RegisterView(template)
-	//注册模板目标
-	app.HandleDir("/assets", iris.Dir("./backend/web/assets"))
+	//4.设置模板目标
+	//app.StaticWeb("/assets", "./backend/web/assets")
+	//app.StaticContent("/assets", "./backend/web/assets",[]byte())
+	//注册模板目标 已经替代了StaticWeb("/，iris不再支持了
+	app.HandleDir("/assets", iris.Dir("./web/assets"))
 	productInstance := mvc.New(app.Party("/product"))
 	dbConn, err := common.NewMysqlConn()
 	if err != nil {
 		log.Fatalf("start NewMysqlConn err %v", err)
+		return
 	}
 	productRepositories := repositories.NewProductRepositoryManager("product", dbConn)
 	productService := service.NewProductServiceManager(productRepositories)
 	//注册service
 	productInstance.Register(productService)
 	//注册控制器
-	productInstance.Handle(new(controller.Product))
+	productInstance.Handle(new(controller.ProductController))
 	//优雅退出
 	idleConnsClosed := make(chan struct{})
 	iris.RegisterOnInterrupt(func() {

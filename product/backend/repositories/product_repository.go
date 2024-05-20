@@ -55,7 +55,7 @@ func (p *ProductRepositoryManager) Conn() (err error) {
 func (p *ProductRepositoryManager) Insert(product *datamodels.Product) (id int64, err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Insert error", err)
-		return
+		return 0, err
 	}
 	//预编译采用占位符，防止sql注入
 	sql := "insert into" + p.table + "set product_id = ？，product_name=?,product_num=?,image=?,product_price=?"
@@ -76,7 +76,7 @@ func (p *ProductRepositoryManager) Insert(product *datamodels.Product) (id int64
 func (p *ProductRepositoryManager) Delete(product_id string) (isSuccess bool, err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Delete error", err)
-		return
+		return false, err
 	}
 	sql := "delete from" + p.table + "where product_id=?"
 	stmt, err := p.mysqlConn.Prepare(sql)
@@ -95,7 +95,7 @@ func (p *ProductRepositoryManager) Delete(product_id string) (isSuccess bool, er
 func (p *ProductRepositoryManager) Update(product *datamodels.Product) (err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Update error", err)
-		return
+		return err
 	}
 	sql := "update" + p.table + "set product_id=? and product_name=? and product_num=? and image=? and product_price=? where id=" + strconv.FormatInt(product.ID, 10)
 	stmt, err := p.mysqlConn.Prepare(sql)
@@ -115,7 +115,7 @@ func (p *ProductRepositoryManager) Update(product *datamodels.Product) (err erro
 func (p ProductRepositoryManager) SelectByProductId(product_id string) (product *datamodels.Product, err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Update error", err)
-		return
+		return nil, err
 	}
 	sql := "select * from" + p.table + "where product_id=" + product_id
 	rows, err := p.mysqlConn.Query(sql)
@@ -139,7 +139,7 @@ func (p ProductRepositoryManager) SelectByProductId(product_id string) (product 
 func (p *ProductRepositoryManager) SelectAll() (arrProductInfo []*datamodels.Product, err error) {
 	if err := p.Conn(); err != nil {
 		log.Fatalln("mysql ProductRepositoryManager SelectAll error", err)
-		return
+		return nil, err
 	}
 	sql := "select * from " + p.table
 	rows, err := p.mysqlConn.Query(sql)
