@@ -1,13 +1,15 @@
 package controller
 
 import (
+	"backend/common"
+	"backend/datamodels"
 	"backend/service"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 )
 
 type ProductController struct {
-	//Ctx            iris.Context
+	Ctx            iris.Context
 	ProductService service.IProductService
 }
 
@@ -36,3 +38,25 @@ func (p *ProductController) GetAll() mvc.View {
 		log.Fatalln("product controller  GetAllProductInfo error", err)
 	}
 }*/
+//添加商品表单页
+func (p *ProductController) GetAdd() mvc.View {
+	return mvc.View{
+		Name: "product/add.html",
+	}
+}
+
+//添加商品
+func (p *ProductController) PostAdd() {
+	product := &datamodels.Product{}
+	//解析post字段到结构体中
+	p.Ctx.Request().ParseForm()
+	dec := common.NewDecoder(&common.DecoderOptions{})
+	if err := dec.Decode(p.Ctx.Request().Form, product); err != nil {
+		p.Ctx.Application().Logger().Debug(err)
+	}
+	_, err := p.ProductService.InsertProdct(product)
+	if err != nil {
+		p.Ctx.Application().Logger().Debug(err)
+	}
+	p.Ctx.Redirect("/product/all")
+}

@@ -58,13 +58,14 @@ func (p *ProductRepositoryManager) Insert(product *datamodels.Product) (id int64
 		return 0, err
 	}
 	//预编译采用占位符，防止sql注入
-	sql := "insert into" + p.table + "set product_id = ？，product_name=?,product_num=?,image=?,product_price=?"
+	sql := "insert " + p.table + " set product_id=?,product_name=?,product_num=?,image=?,product_price=?"
+	log.Println("mysql ProductRepositoryManager Insert sql", sql, product.ProductID, product.ProductName, product.ProductNum, product.ProductImage, product.ProductPrice)
 	stmt, err := p.mysqlConn.Prepare(sql)
 	if err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Prepare error", err)
 		return
 	}
-	resp, err := stmt.Exec(product.ProductName, product.ProductNum, product.ProductImage, product.ProductPrice)
+	resp, err := stmt.Exec(product.ProductID, product.ProductName, product.ProductNum, product.ProductImage, product.ProductPrice)
 	if err != nil {
 		log.Fatalln("mysql ProductRepositoryManager Exec error", err)
 		return
