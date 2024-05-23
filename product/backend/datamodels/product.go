@@ -6,6 +6,6 @@ type Product struct {
 	ProductID    string `json:"product_id" sql:"product_id" mx:"product_id"`
 	ProductName  string `json:"product_name" sql:"product_name" mx:"product_name"`
 	ProductNum   int    `json:"product_num" sql:"product_num" mx:"product_num"`
-	ProductImage string `json:"image" sql:"image" mx:"product_image"`
+	ProductImage string `json:"image" sql:"product_image" mx:"product_image"`
 	ProductPrice int    `json:"product_price" sql:"product_price" mx:"product_price"`
 }

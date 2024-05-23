@@ -7,9 +7,11 @@ import (
 
 type IProductService interface {
 	InsertProdct(*datamodels.Product) (int64, error)
-	DeletePruductByProductid(string2 string) (bool, error)
+	DeletePruductByProductid(string) (bool, error)
+	DeletePruductByID(string) (bool, error)
 	UpdateProduct(*datamodels.Product) error
 	GetProductInfoByProductid(string) (*datamodels.Product, error)
+	GetProductInfoByID(int64) (*datamodels.Product, error)
 	GetAllProductInfo() ([]*datamodels.Product, error)
 }
 type ProductServiceManager struct {
@@ -29,6 +31,9 @@ func (p *ProductServiceManager) InsertProdct(product *datamodels.Product) (int64
 func (p *ProductServiceManager) DeletePruductByProductid(product_id string) (bool, error) {
 	return p.productRepo.Delete(product_id)
 }
+func (p *ProductServiceManager) DeletePruductByID(id string) (bool, error) {
+	return p.productRepo.Delete(id)
+}
 
 func (p *ProductServiceManager) UpdateProduct(product *datamodels.Product) error {
 	return p.productRepo.Update(product)
@@ -36,6 +41,9 @@ func (p *ProductServiceManager) UpdateProduct(product *datamodels.Product) error
 
 func (p *ProductServiceManager) GetProductInfoByProductid(product_id string) (*datamodels.Product, error) {
 	return p.productRepo.SelectByProductId(product_id)
+}
+func (p *ProductServiceManager) GetProductInfoByID(id int64) (*datamodels.Product, error) {
+	return p.productRepo.SelectByID(id)
 }
 
 func (p *ProductServiceManager) GetAllProductInfo() ([]*datamodels.Product, error) {

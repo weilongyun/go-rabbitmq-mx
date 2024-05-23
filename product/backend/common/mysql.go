@@ -3,6 +3,7 @@ package common
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"strconv"
 )
 
 //创建mysql 连接
@@ -32,7 +33,15 @@ func GetResultRow(rows *sql.Rows) map[string]string {
 		for i, v := range values {
 			if v != nil {
 				//如果当前值不为空，则将其转换为 string 类型并存储在 record map 中，键为该列的名称
-				record[columns[i]] = string(v.([]byte))
+				switch val := v.(type) {
+				case []byte:
+					record[columns[i]] = string(val)
+				case int64:
+					record[columns[i]] = strconv.FormatInt(val, 10)
+				// 添加其他可能的类型转换
+				default:
+					record[columns[i]] = string(v.([]byte))
+				}
 			}
 		}
 	}

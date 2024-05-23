@@ -93,4 +93,7 @@ func main() {
 	fmt.Println(userV2.Field(0).Type().Name())
 	fmt.Println(userV2.Field(1).Type().Name())
 
+	arr1 := []int{3, 4, 5, 1, 2, 3, 4}
+	fmt.Println(len(arr1) / 2)
+
 }
